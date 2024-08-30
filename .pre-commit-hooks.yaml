@@ -1,0 +1,6 @@
+- id: uv-sort
+  name: uv-sort
+  description: sort uv's dependencies
+  entry: uv-sort
+  language: python
+  files: ^(.*/)?(pyproject\.toml)$

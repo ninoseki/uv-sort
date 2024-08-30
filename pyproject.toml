@@ -1,0 +1,37 @@
+[project]
+name = "uv-sort"
+version = "0.1.0"
+description = "Sort uv's dependencies alphabetically"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["packaging>=24.1", "tomlkit>=0.13.2", "typer>=0.12.5"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pre-commit>=3.8.0",
+    "pytest>=8.3.2",
+    "pytest-pretty>=1.2.0",
+    "pytest-randomly>=3.15.0",
+]
+
+[project.scripts]
+uv-sort = "uv_sort.cli:app"
+
+[tool.ruff.lint]
+select = [
+    "B",   # flake8-bugbear
+    "C",   # flake8-comprehensions
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "RET", # flake8-return
+    "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
+    "T20", # flake8-print
+    "W",   # pycodestyle warnings
+]
