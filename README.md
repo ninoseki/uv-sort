@@ -1,5 +1,7 @@
 # uv-sort
 
+[![PyPI version](https://badge.fury.io/py/uv-sort.svg)](https://badge.fury.io/py/uv-sort)
+
 Sort uv's dependencies alphabetically.
 
 ## Installation
