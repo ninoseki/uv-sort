@@ -1,6 +1,6 @@
 [project]
 name = "uv-sort"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Sort uv's dependencies alphabetically"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -23,8 +23,11 @@ dependencies = [
 Repository = "https://github.com/ninoseki/uv-sort"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
 
 [tool.uv]
 dev-dependencies = [
