@@ -27,7 +27,7 @@ $ uv-sort pyproject.toml
 ```yaml
 repos:
   - repo: https://github.com/ninoseki/uv-sort
-    rev: v0.1.1
+    rev: "" # Use the sha / tag you want to point at
     hooks:
       - id: uv-sort
 ```
