@@ -4,32 +4,41 @@ from typing import cast
 import tomlkit
 from packaging.requirements import Requirement
 from tomlkit.container import Container
-from tomlkit.items import Array, Item, Null, Table, _ArrayItemGroup
+from tomlkit.items import Array, Table, _ArrayItemGroup
 
 
 def sort_array_by_name(x: Array) -> Array:
     def key_builder(y: _ArrayItemGroup) -> str:
         return Requirement(str(y.value)).name.casefold()
 
-    # filter ArrayItemGroup doesn't have a value (e.g. trailing ",")
-    filtered = [y for y in x._value if y.value]
+    # reject ArrayItemGroup doesn't have a value (e.g. trailing ",")
+    filtered: list[_ArrayItemGroup] = [item for item in x._value if item.value]
     # sort the array
     _sorted = sorted(filtered, key=key_builder)
     # rebuild the array with preserving comments & indentation
-    s = "[\n"
-    for y in _sorted:
-        v = cast(Item, y.value)
+    # consider adding a line-break at last if the last indent has a line-break
+    last_indent = _sorted[-1].indent
+    has_line_break_at_last = (
+        last_indent.as_string() if last_indent else ""
+    ).startswith("\n")
+    last_line_break = "\n" if has_line_break_at_last else ""
+
+    s = "["
+    for item in _sorted:
+        # just for type checking
+        if item.value is None:
+            continue
+
         s += "".join(
             [
                 x.trivia.indent,
-                " " * 4,
-                v.value.as_string(),
-                ("," if not isinstance(v.value, Null) else ""),
-                y.comment.as_string() if y.comment else "",
-                "\n",
+                item.indent.as_string() if item.indent else "",
+                item.value.as_string(),
+                item.comma.as_string() if item.comma else "",
+                item.comment.as_string() if item.comment else "",
             ]
         )
-    s += x.trivia.indent + "]"
+    s += x.trivia.indent + last_line_break + "]"
 
     return tomlkit.array(s).multiline(x._multiline)
 
