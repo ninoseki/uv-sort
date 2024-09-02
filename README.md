@@ -15,11 +15,18 @@ uv add uv-sort
 ## Usage
 
 ```bash
-$ uv-sort --help
+# sort dependencies in pyproject.toml in the current working directory
+$ uv-sort
+# or you can specify the path
+$ uv-sort /path/to/pyproject.toml
+```
 
- Usage: uv-sort [OPTIONS] PATH...
+### Options
 
-$ uv-sort pyproject.toml
+- `--check`: Check if dependencies are sorted and exit with a non-zero status code when they are not.
+
+```bash
+uv-sort --check
 ```
 
 ## pre-commit
