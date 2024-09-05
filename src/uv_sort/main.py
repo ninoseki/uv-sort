@@ -4,15 +4,25 @@ from typing import cast
 import tomlkit
 from packaging.requirements import Requirement
 from tomlkit.container import Container
-from tomlkit.items import Array, Table, _ArrayItemGroup
+from tomlkit.items import Array, Comment, Null, Table, Whitespace, _ArrayItemGroup
+
+
+def is_processable(item: _ArrayItemGroup) -> bool:
+    if not item.value:
+        return False
+
+    return not isinstance(item.value, (Comment, Whitespace, Null))
+
+
+def key_builder(item: _ArrayItemGroup) -> str:
+    return Requirement(str(item.value)).name.casefold()
 
 
 def sort_array_by_name(x: Array) -> Array:
-    def key_builder(y: _ArrayItemGroup) -> str:
-        return Requirement(str(y.value)).name.casefold()
-
-    # reject ArrayItemGroup doesn't have a value (e.g. trailing ",")
-    filtered: list[_ArrayItemGroup] = [item for item in x._value if item.value]
+    # reject ArrayItemGroup doesn't have a value (e.g. trailing ",", comment)
+    filtered: list[_ArrayItemGroup] = [
+        item for item in x._value if is_processable(item)
+    ]
     # sort the array
     _sorted = sorted(filtered, key=key_builder)
     # rebuild the array with preserving comments & indentation
