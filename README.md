@@ -24,10 +24,7 @@ $ uv-sort /path/to/pyproject.toml
 ### Options
 
 - `--check`: Check if dependencies are sorted and exit with a non-zero status code when they are not.
-
-```bash
-uv-sort --check
-```
+- `--dry-run`: Output the modified file to stdout without modifying the file.
 
 ## pre-commit
 
