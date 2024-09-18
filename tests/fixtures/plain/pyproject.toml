@@ -5,9 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pydantic>=2.8.2",
     "tomlkit>=0.13.2",
     "typer>=0.12.5",
+    "pydantic>=2.8.2",
 ]
 
 [project.optional-dependencies]
@@ -27,3 +27,7 @@ dev-dependencies = [
     "pytest-pretty>=1.2.0",
     "pytest-randomly>=3.15.0",
 ]
+
+[tool.uv.sources]
+requests = { git = "https://github.com/psf/requests" }
+httpx = { git = "https://github.com/encode/httpx" }

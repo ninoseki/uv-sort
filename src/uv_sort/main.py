@@ -4,7 +4,14 @@ from typing import cast
 import tomlkit
 from packaging.requirements import Requirement
 from tomlkit.container import Container
-from tomlkit.items import Array, Comment, Null, Table, Whitespace, _ArrayItemGroup
+from tomlkit.items import (
+    Array,
+    Comment,
+    Null,
+    Table,
+    Whitespace,
+    _ArrayItemGroup,
+)
 
 
 def is_processable(item: _ArrayItemGroup) -> bool:
@@ -70,6 +77,19 @@ def sort_table_by_name(x: Table) -> Table:
     return _sorted
 
 
+def sort_sources(x: Table) -> Table:
+    _sorted = Table(
+        Container(),
+        trivia=x.trivia,
+        is_aot_element=x.is_aot_element(),
+        is_super_table=x.is_super_table(),
+        name=x.name,
+        display_name=x.display_name,
+    )
+    _sorted.update(sorted(x.items()))
+    return _sorted
+
+
 def sort_toml_project(text: str) -> tomlkit.TOMLDocument:
     parsed = tomlkit.parse(text)
 
@@ -90,6 +110,10 @@ def sort_toml_project(text: str) -> tomlkit.TOMLDocument:
     )
     if dev_dependencies:
         parsed["tool"]["uv"]["dev-dependencies"] = sort_array_by_name(dev_dependencies)  # type: ignore
+
+    sources: Table | None = parsed.get("tool", {}).get("uv", {}).get("sources")
+    if sources:
+        parsed["tool"]["uv"]["sources"] = sort_sources(sources)  # type: ignore
 
     return parsed
 

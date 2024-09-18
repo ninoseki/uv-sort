@@ -27,6 +27,10 @@ def test_with_plain(plain: str):
         "pytest-pretty>=1.2.0",
         "pytest-randomly>=3.15.0",
     ]
+    assert _sorted["tool"]["uv"]["sources"] == {  # type: ignore
+        "httpx": {"git": "https://github.com/encode/httpx"},
+        "requests": {"git": "https://github.com/psf/requests"},
+    }
 
 
 @pytest.fixture
