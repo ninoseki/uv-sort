@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import cast
+from typing import Optional, cast
 
 import tomlkit
 from packaging.requirements import Requirement
@@ -93,11 +93,11 @@ def sort_sources(x: Table) -> Table:
 def sort_toml_project(text: str) -> tomlkit.TOMLDocument:
     parsed = tomlkit.parse(text)
 
-    dependencies: Array | None = parsed.get("project", {}).get("dependencies")
+    dependencies: Optional[Array] = parsed.get("project", {}).get("dependencies")
     if dependencies:
         parsed["project"]["dependencies"] = sort_array_by_name(dependencies)  # type: ignore
 
-    optional_dependencies: Table | None = parsed.get("project", {}).get(
+    optional_dependencies: Optional[Table] = parsed.get("project", {}).get(
         "optional-dependencies"
     )
     if optional_dependencies:
@@ -105,13 +105,13 @@ def sort_toml_project(text: str) -> tomlkit.TOMLDocument:
             optional_dependencies
         )
 
-    dev_dependencies: Array | None = (
+    dev_dependencies: Optional[Array] = (
         parsed.get("tool", {}).get("uv", {}).get("dev-dependencies")
     )
     if dev_dependencies:
         parsed["tool"]["uv"]["dev-dependencies"] = sort_array_by_name(dev_dependencies)  # type: ignore
 
-    sources: Table | None = parsed.get("tool", {}).get("uv", {}).get("sources")
+    sources: Optional[Table] = parsed.get("tool", {}).get("uv", {}).get("sources")
     if sources:
         parsed["tool"]["uv"]["sources"] = sort_sources(sources)  # type: ignore
 
