@@ -4,20 +4,17 @@ dynamic = ["version"]
 description = "Sort uv's dependencies alphabetically"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 keywords = ["uv"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = [
-    "packaging>=24.1",
-    "tomlkit>=0.13.2",
-    "typer>=0.12.5",
-]
+dependencies = ["packaging>=24.1", "tomlkit>=0.13.2", "typer>=0.12.5"]
 
 [project.urls]
 Repository = "https://github.com/ninoseki/uv-sort"
