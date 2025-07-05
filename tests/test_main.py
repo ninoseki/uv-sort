@@ -1,4 +1,5 @@
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from tomlkit import array
@@ -21,12 +22,52 @@ from uv_sort.main import sort_array_by_name, sort_toml_project
             '["dvc-pandas>=0.3.3", "dvc[azure]>=3.59.2", "uv-sort>=0.5.1"]',
             '["dvc-pandas>=0.3.3", "dvc[azure]>=3.59.2", "uv-sort>=0.5.1"]',
         ),
+        # standalone comments should be preserved with their following dependency
+        (
+            '[\n"zoo",\n# comment about bar\n"bar",\n"foo",\n]',
+            '[\n# comment about bar\n"bar",\n"foo",\n"zoo",\n]',
+        ),
+        # multiple standalone comments should stay together
+        (
+            '[\n"zoo",\n# first comment\n# second comment\n"bar",\n]',
+            '[\n# first comment\n# second comment\n"bar",\n"zoo",\n]',
+        ),
+        # mixed inline and standalone comments
+        (
+            '[\n"zoo", # inline comment\n# standalone comment\n"bar",\n"foo", # another inline\n]',
+            '[\n# standalone comment\n"bar",\n"foo", # another inline\n"zoo", # inline comment\n]',
+        ),
+        # trailing comments should be preserved
+        (
+            '[\n"zoo",\n"bar",\n# trailing comment\n]',
+            '[\n"bar",\n"zoo",\n# trailing comment\n]',
+        ),
     ],
 )
 def test_sort_array_by_name(raw: str, expected: str):
     arr = array(raw)
     _sorted = sort_array_by_name(arr)
     assert _sorted.as_string() == expected
+
+
+def test_sort_from_file(tmp_path):
+    """Test the sort function that reads from a file path"""
+    from uv_sort.main import sort
+
+    toml_content = dedent("""\
+        [project]
+        dependencies = [
+            "zebra",
+            "alpha",
+        ]
+        """)
+
+    test_file = tmp_path / "test.toml"
+    test_file.write_text(toml_content)
+
+    result = sort(test_file)
+    assert "alpha" in result
+    assert "zebra" in result
 
 
 @pytest.fixture

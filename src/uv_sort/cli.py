@@ -28,7 +28,7 @@ def sort(
         typer.Option(
             "--check",
             "-c",
-            help="Check if dependencies are sorted and exit with a non-zero status code when they are not.",  # noqa: E501
+            help="Check if dependencies are sorted and exit with a non-zero status code when they are not.",
         ),
     ] = False,
 ):

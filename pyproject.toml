@@ -36,9 +36,9 @@ version = "{version}"
 [tool.uv]
 dev-dependencies = [
     "pre-commit>=4.2.0",
-    "pytest>=8.3.5",
     "pytest-pretty>=1.2.0",
     "pytest-randomly>=3.16.0",
+    "pytest>=8.3.5",
 ]
 
 [project.scripts]

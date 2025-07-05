@@ -20,6 +20,11 @@ def is_processable(item: _ArrayItemGroup) -> bool:
     return not isinstance(item.value, (Comment, Whitespace, Null))
 
 
+def is_standalone_comment(item: _ArrayItemGroup) -> bool:
+    """Check if an item is a standalone comment (Null with comment attached)"""
+    return isinstance(item.value, Null) and item.comment is not None
+
+
 def key_builder(item: _ArrayItemGroup) -> str:
     return str(item.value).casefold()
 
@@ -49,6 +54,16 @@ def multi_line_array_mapper(item: _ArrayItemGroup, *, indent: str, **kwargs) -> 
     if item.value is None:
         return ""
 
+    # Handle standalone comments (Null with comment)
+    if is_standalone_comment(item):
+        return "".join(
+            [
+                indent,
+                item.indent.as_string() if item.indent else "",
+                item.comment.as_string() if item.comment else "",
+            ]
+        )
+
     # always add a comma at the end of the line
     comma = item.comma.as_string() if item.comma else ""
     if not comma.strip().endswith(","):
@@ -70,15 +85,43 @@ def sort_array_by_name(x: Array) -> Array:
         # nothing to sort
         return x
 
-    # reject ArrayItemGroup doesn't have a value (e.g. trailing ",", comment)
-    filtered: list[_ArrayItemGroup] = [
-        item for item in x._value if is_processable(item)
-    ]
-    # sort the array
-    _sorted = sorted(filtered, key=key_builder)
+    # Group items with their preceding standalone comments
+    grouped_items: list[tuple[list[_ArrayItemGroup], _ArrayItemGroup]] = []
+    preceding_comments: list[_ArrayItemGroup] = []
+    trailing_comments: list[_ArrayItemGroup] = []
+
+    for item in x._value:
+        if is_standalone_comment(item):
+            # Accumulate standalone comments
+            preceding_comments.append(item)
+        elif is_processable(item):
+            # This is a real dependency, group it with any preceding comments
+            grouped_items.append((preceding_comments.copy(), item))
+            preceding_comments.clear()
+        # Skip other non-processable items (whitespace, etc.)
+
+    # Any remaining comments are trailing comments
+    trailing_comments = preceding_comments
+
+    # Sort the grouped items by the dependency value
+    _sorted = sorted(grouped_items, key=lambda group: key_builder(group[1]))
+
+    # Flatten the sorted groups back into a list
+    flattened: list[_ArrayItemGroup] = []
+    for comments, item in _sorted:
+        flattened.extend(comments)
+        flattened.append(item)
+
+    # Add trailing comments at the end
+    flattened.extend(trailing_comments)
+
+    # No data to process or sort
+    if not flattened:
+        return x
+
     # rebuild the array with preserving comments & indentation
     # consider adding a line-break at last if the last indent has a line-break
-    last_indent = _sorted[-1].indent
+    last_indent = flattened[-1].indent
     has_line_break_at_last = (
         last_indent.as_string() if last_indent else ""
     ).startswith("\n")
@@ -91,10 +134,10 @@ def sort_array_by_name(x: Array) -> Array:
         mapper(
             item,
             first=index == 0,
-            last=index == len(_sorted) - 1,
+            last=index == len(flattened) - 1,
             indent=x.trivia.indent,
         )
-        for index, item in enumerate(_sorted)
+        for index, item in enumerate(flattened)
     ]
 
     s = "[" + "".join(mapped) + x.trivia.indent + last_line_break + "]"
