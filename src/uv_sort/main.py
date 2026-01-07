@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 import tomlkit
 from tomlkit.container import Container
@@ -184,19 +184,19 @@ def sort_toml_project(text: str) -> tomlkit.TOMLDocument:
     parsed = tomlkit.parse(text)
 
     # sort project.dependencies (array)
-    dependencies: Optional[Array] = parsed.get("project", {}).get("dependencies")
+    dependencies: Array | None = parsed.get("project", {}).get("dependencies")
     if dependencies:
         parsed["project"]["dependencies"] = sort_array_by_name(dependencies)  # type: ignore
 
     # sort project.dev-dependencies (array)
-    dev_dependencies: Optional[Array] = (
+    dev_dependencies: Array | None = (
         parsed.get("tool", {}).get("uv", {}).get("dev-dependencies")
     )
     if dev_dependencies:
         parsed["tool"]["uv"]["dev-dependencies"] = sort_array_by_name(dev_dependencies)  # type: ignore
 
     # sort project.optional-dependencies (table)
-    optional_dependencies: Optional[Table] = parsed.get("project", {}).get(
+    optional_dependencies: Table | None = parsed.get("project", {}).get(
         "optional-dependencies"
     )
     if optional_dependencies:
@@ -205,12 +205,12 @@ def sort_toml_project(text: str) -> tomlkit.TOMLDocument:
         )
 
     # sort dependency-groups (table)
-    dependency_groups: Optional[Table] = parsed.get("dependency-groups")
+    dependency_groups: Table | None = parsed.get("dependency-groups")
     if dependency_groups:
         parsed["dependency-groups"] = sort_table_by_name(dependency_groups)
 
     # sort tool.uv.sources (table)
-    sources: Optional[Table] = parsed.get("tool", {}).get("uv", {}).get("sources")
+    sources: Table | None = parsed.get("tool", {}).get("uv", {}).get("sources")
     if sources:
         parsed["tool"]["uv"]["sources"] = sort_sources(sources)  # type: ignore
 
