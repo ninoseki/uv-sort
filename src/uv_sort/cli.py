@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 
@@ -12,7 +12,7 @@ app = typer.Typer()
 @app.command()
 def sort(
     path: Annotated[
-        Optional[list[Path]],
+        list[Path] | None,
         typer.Argument(
             help="pyproject.toml path(s) to sort. Defaults to pyproject.toml.",
         ),
