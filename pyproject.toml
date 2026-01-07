@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["packaging~=24.1", "tomlkit~=0.13", "typer>=0.15"]
+dependencies = ["packaging>=24.1", "tomlkit~=0.13", "typer>=0.15"]
 
 [project.urls]
 Repository = "https://github.com/ninoseki/uv-sort"
