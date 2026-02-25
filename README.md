@@ -20,6 +20,9 @@ pip install uv-sort
 uv add uv-sort
 ```
 
+> [!Note]
+> `uv` users do not need to install `uv-sort` and can instead use [`uv tools`](https://docs.astral.sh/uv/concepts/tools/). See usage examples.
+
 ## Usage
 
 ```bash
@@ -27,6 +30,8 @@ uv add uv-sort
 $ uv-sort
 # or you can specify the path
 $ uv-sort /path/to/pyproject.toml
+# or using uv tools (no install)
+$ uvx uv-sort
 ```
 
 ### Options
