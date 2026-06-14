@@ -2,9 +2,16 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
-from tomlkit import array
+import tomlrt
 
-from uv_sort.main import sort_array_by_name, sort_toml_project
+from uv_sort.main import sort, sort_array, sort_toml_project
+
+
+def _sort_array_string(raw: str) -> str:
+    doc = tomlrt.loads(f"x = {raw}")
+    array = doc.array("x")
+    sort_array(array)
+    return tomlrt.dumps(doc).removeprefix("x = ")
 
 
 @pytest.mark.parametrize(
@@ -12,9 +19,9 @@ from uv_sort.main import sort_array_by_name, sort_toml_project
     [
         ('["foo", "bar"]', '["bar", "foo"]'),
         # should be multi-line if there is a line-break
-        ('["foo", \n"bar"]', '[ \n"bar","foo",\n]'),
+        ('["foo", \n"bar"]', '["bar", \n"foo"]'),
         # should be multi-line if there is a comment
-        ('["foo", # baz \n"bar"]', '[\n"bar","foo", # baz \n]'),
+        ('["foo", # baz \n"bar"]', '["bar",\n"foo" # baz \n]'),
         # should be intact if it only has one element
         ('["foo" # bar\n]', '["foo" # bar\n]'),
         # ref. https://github.com/ninoseki/uv-sort/issues/18
@@ -44,16 +51,12 @@ from uv_sort.main import sort_array_by_name, sort_toml_project
         ),
     ],
 )
-def test_sort_array_by_name(raw: str, expected: str):
-    arr = array(raw)
-    _sorted = sort_array_by_name(arr)
-    assert _sorted.as_string() == expected
+def test_sort_array(raw: str, expected: str):
+    assert _sort_array_string(raw) == expected
 
 
 def test_sort_from_file(tmp_path):
     """Test the sort function that reads from a file path"""
-    from uv_sort.main import sort
-
     toml_content = dedent("""\
         [project]
         dependencies = [
@@ -70,67 +73,76 @@ def test_sort_from_file(tmp_path):
     assert "zebra" in result
 
 
-@pytest.fixture
-def plain() -> str:
-    return Path("tests/fixtures/plain/pyproject.toml").read_text()
+def test_with_plain():
+    plain = Path("tests/fixtures/plain/pyproject.toml").read_text()
+    expected = dedent("""\
+        [project]
+        name = "dummy"
+        version = "0.1.0"
+        description = "dummy"
+        readme = "README.md"
+        requires-python = ">=3.12"
+        dependencies = ["bar", "foo"]
+
+        [project.optional-dependencies]
+        docs = ["bar", "foo"]
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+
+        [tool.uv]
+        dev-dependencies = ["bar", "foo"]
+
+        [tool.uv.sources]
+        bar = { git = "https://github.com/ninoseki/bar" }
+        foo = { git = "https://github.com/ninoseki/foo" }
+
+        [dependency-groups]
+        dev = ["bar", "foo"]
+        """)
+    assert tomlrt.dumps(sort_toml_project(plain)) == expected
 
 
-def test_with_plain(plain: str):
-    _sorted = sort_toml_project(plain)
+def test_with_comment():
+    comment = Path("tests/fixtures/with-comment/pyproject.toml").read_text()
+    expected = dedent("""\
+        [project]
+        name = "dummy"
+        version = "0.1.0"
+        description = "..."
+        readme = "README.md"
+        requires-python = ">=3.12"
+        dependencies = [
+          "bar", # baz
+          "foo",
+        ]
 
-    sorted_dependencies = sorted(["foo", "bar"])
+        [project.optional-dependencies]
+        docs = [
+          "bar", # baz
+          "foo",
+        ]
 
-    # array
-    assert _sorted["project"]["dependencies"] == sorted_dependencies  # type: ignore
-    assert _sorted["tool"]["uv"]["dev-dependencies"] == sorted_dependencies  # type: ignore
-    # table
-    assert _sorted["project"]["optional-dependencies"] == {"docs": sorted_dependencies}  # type: ignore
-    assert _sorted["dependency-groups"] == {"dev": sorted_dependencies}  # type: ignore
-    assert _sorted["tool"]["uv"]["sources"] == {  # type: ignore
-        "bar": {"git": "https://github.com/ninoseki/bar"},
-        "foo": {"git": "https://github.com/ninoseki/foo"},
-    }
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
 
+        [tool.uv]
+        dev-dependencies = [
+          "bar", # baz
+          "foo",
+        ]
 
-@pytest.fixture
-def comment() -> str:
-    return Path("tests/fixtures/with-comment/pyproject.toml").read_text()
+        [tool.uv.sources]
+        bar = { git = "https://github.com/ninoseki/bar" }
+        foo = { git = "https://github.com/ninoseki/foo" }
 
-
-def test_with_comment(comment: str):
-    _sorted = sort_toml_project(comment)
-
-    sorted_dependencies = sorted(["foo", "bar"])
-
-    assert _sorted["project"]["dependencies"] == sorted_dependencies  # type: ignore
-    assert (
-        _sorted["project"]["dependencies"].as_string()  # type: ignore
-        == '[\n  "bar", # baz\n  "foo",\n]'
-    )
-
-    assert _sorted["tool"]["uv"]["dev-dependencies"] == sorted_dependencies  # type: ignore
-    assert (
-        _sorted["tool"]["uv"]["dev-dependencies"].as_string()  # type: ignore
-        == '[\n  "bar", # baz\n  "foo",\n]'
-    )
-
-    assert _sorted["project"]["optional-dependencies"] == {"docs": sorted_dependencies}  # type: ignore
-    assert (
-        _sorted["project"]["optional-dependencies"].as_string()  # type: ignore
-        == 'docs = [\n  "bar", # baz\n  "foo",\n]\n\n'
-    )
-
-    assert _sorted["dependency-groups"] == {"dev": sorted_dependencies}  # type: ignore
-    assert (
-        _sorted["dependency-groups"].as_string()  # type: ignore
-        == '# baz\ndev = [\n  "bar", # baz\n  "foo",\n]\n'
-    )
-
-    assert _sorted["tool"]["uv"]["sources"] == {  # type: ignore
-        "bar": {"git": "https://github.com/ninoseki/bar"},
-        "foo": {"git": "https://github.com/ninoseki/foo"},
-    }
-    assert (
-        _sorted["tool"]["uv"]["sources"].as_string()  # type: ignore
-        == 'bar = { git = "https://github.com/ninoseki/bar" }\nfoo = { git = "https://github.com/ninoseki/foo" }\n\n'
-    )
+        [dependency-groups]
+        # baz
+        dev = [
+          "bar", # baz
+          "foo",
+        ]
+        """)
+    assert tomlrt.dumps(sort_toml_project(comment)) == expected

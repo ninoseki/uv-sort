@@ -3,7 +3,7 @@
 from textwrap import dedent
 
 import pytest
-import tomlkit
+import tomlrt
 
 from uv_sort.main import sort_toml_project
 
@@ -175,7 +175,7 @@ def test_standalone_comment_preservation(
 ):
     """Test that standalone comments are preserved and stay with their following dependency"""
     sorted_doc = sort_toml_project(input_toml)
-    result = tomlkit.dumps(sorted_doc)
+    result = tomlrt.dumps(sorted_doc)
     assert result == expected_toml, f"Failed test: {test_name}"
 
 
@@ -238,5 +238,5 @@ def test_complex_scenario():
         """)
 
     sorted_doc = sort_toml_project(input_toml)
-    result = tomlkit.dumps(sorted_doc)
+    result = tomlrt.dumps(sorted_doc)
     assert result == expected_toml
