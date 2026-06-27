@@ -3,7 +3,7 @@ name = "uv-sort"
 dynamic = ["version"]
 description = "Sort uv's dependencies alphabetically"
 readme = "README.md"
-license = { file = "LICENSE" }
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 keywords = ["uv"]
 classifiers = [
@@ -15,7 +15,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["packaging>=24.1", "tomlrt>=2,<3", "typer>=0.15"]
+dependencies = ["tomlrt>=2,<3", "typer>=0.15"]
+
+[project.scripts]
+uv-sort = "uv_sort.cli:app"
 
 [project.urls]
 Repository = "https://github.com/ninoseki/uv-sort"
@@ -23,6 +26,14 @@ Repository = "https://github.com/ninoseki/uv-sort"
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning~=0.5"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest-pretty>=1.3.0",
+    "pytest-randomly>=4.0.1",
+    "pytest>=9.0.2",
+]
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
@@ -32,18 +43,6 @@ path = "src/uv_sort/_version.py"
 template = '''
 version = "{version}"
 '''
-
-
-[tool.uv]
-dev-dependencies = [
-    "pre-commit>=4.5.1",
-    "pytest-pretty>=1.3.0",
-    "pytest-randomly>=4.0.1",
-    "pytest>=9.0.2",
-]
-
-[project.scripts]
-uv-sort = "uv_sort.cli:app"
 
 [tool.ruff.lint]
 select = [

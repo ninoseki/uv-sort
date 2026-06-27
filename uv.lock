@@ -348,7 +348,6 @@ wheels = [
 name = "uv-sort"
 source = { editable = "." }
 dependencies = [
-    { name = "packaging" },
     { name = "tomlrt" },
     { name = "typer" },
 ]
@@ -363,7 +362,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "packaging", specifier = ">=24.1" },
     { name = "tomlrt", specifier = ">=2,<3" },
     { name = "typer", specifier = ">=0.15" },
 ]
