@@ -11,18 +11,18 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.25
+    rev: 0f34924c4110aca2294a4e4204aac7b3e31803fb # 0.12.7
     hooks:
       - id: uv-lock
 
   - repo: https://github.com/ninoseki/uv-sort
-    rev: v0.7.0
+    rev: 5164b1c56d16ad34014d74e8cc4bcc4494664059 # v0.7.1
     hooks:
       - id: uv-sort
         files: ^(pyproject\.toml)$
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.15.20
+    rev: 1f1e8bf348ff38fc88619a38d3ca4d9c56abea49 # v0.16.5
     hooks:
       - id: ruff
         args:
