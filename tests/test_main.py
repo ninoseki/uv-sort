@@ -4,7 +4,7 @@ from textwrap import dedent
 import pytest
 import tomlrt
 
-from uv_sort.main import sort, sort_array, sort_toml_project
+from uv_sort.main import _dependency_key, sort, sort_array, sort_toml_project
 
 
 def _sort_array_string(raw: str) -> str:
@@ -146,3 +146,59 @@ def test_with_comment():
         ]
         """)
     assert tomlrt.dumps(sort_toml_project(comment)) == expected
+
+
+def test_with_uv_sections():
+    """tool.uv's dependency sections and build-system.requires are sorted."""
+    raw = dedent("""\
+        [project]
+        dependencies = ["zoo", "aa"]
+
+        [build-system]
+        requires = ["zzz-backend", "hatchling"]
+        build-backend = "hatchling.build"
+
+        [tool.uv]
+        constraint-dependencies = ["werkzeug==2.3.0", "anyio>=4"]
+        build-constraint-dependencies = ["setuptools>=40", "cmake<4"]
+        override-dependencies = ["werkzeug==2.3.0", { package = "flask", dependencies = ["z", "a"] }, "aa"]
+        exclude-dependencies = [{ package = "zulu", dependencies = ["x"] }, "boto3"]
+
+        [tool.uv.extra-build-dependencies]
+        zope = ["setuptools", "cython"]
+        apache-airflow = [{ requirement = "numpy", match-runtime = true }, "wheel"]
+        """)
+    expected = dedent("""\
+        [project]
+        dependencies = ["aa", "zoo"]
+
+        [build-system]
+        requires = ["hatchling", "zzz-backend"]
+        build-backend = "hatchling.build"
+
+        [tool.uv]
+        constraint-dependencies = ["anyio>=4", "werkzeug==2.3.0"]
+        build-constraint-dependencies = ["cmake<4", "setuptools>=40"]
+        override-dependencies = ["aa", { package = "flask", dependencies = ["a", "z"] }, "werkzeug==2.3.0"]
+        exclude-dependencies = ["boto3", { package = "zulu", dependencies = ["x"] }]
+
+        [tool.uv.extra-build-dependencies]
+        apache-airflow = [{ requirement = "numpy", match-runtime = true }, "wheel"]
+        zope = ["cython", "setuptools"]
+        """)
+    assert tomlrt.dumps(sort_toml_project(raw)) == expected
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        # an inline table is keyed by its dependency name, not its repr
+        ('{ package = "flask" }', "flask"),
+        ('{ requirement = "numpy", match-runtime = true }', "numpy"),
+        # a plain requirement falls back to the string itself
+        ('"Flask>=3"', "flask>=3"),
+    ],
+)
+def test_dependency_key(value: str, expected: str):
+    doc = tomlrt.loads(f"x = [{value}]")
+    assert _dependency_key(doc.array("x")[0]) == expected

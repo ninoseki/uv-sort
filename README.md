@@ -6,10 +6,16 @@ Sort uv's dependencies alphabetically.
 
 The following sections are supported:
 
+- `build-system.requires`
 - `dependency-groups`
 - `project.dependencies`
 - `project.optional-dependencies`
+- `tool.uv.build-constraint-dependencies`
+- `tool.uv.constraint-dependencies`
 - `tool.uv.dev-dependencies`
+- `tool.uv.exclude-dependencies`
+- `tool.uv.extra-build-dependencies`
+- `tool.uv.override-dependencies`
 - `tool.uv.sources`
 
 ## Installation
